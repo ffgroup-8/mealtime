@@ -4,7 +4,7 @@
     {
       "name": "Mealtime (static)",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-I", "-c", "import http.server,socketserver,functools; D='/tmp'; H=functools.partial(http.server.SimpleHTTPRequestHandler,directory=D); socketserver.TCPServer(('',3000),H).serve_forever()"],
+      "runtimeArgs": ["-I", "-c", "import http.server,socketserver,functools,os; D='/Users/jondenjackson/Desktop/Git Repo/Recipe'; P=int(os.environ.get('PORT',3001)); H=functools.partial(http.server.SimpleHTTPRequestHandler,directory=D); socketserver.TCPServer(('',P),H).serve_forever()"],
       "port": 3000
     }
   ]

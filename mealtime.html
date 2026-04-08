@@ -855,6 +855,42 @@
       margin-bottom: 6px;
     }
 
+    /* Edit-mode category chip */
+    .recipe-tag-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      border: 1.5px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      border-radius: 999px;
+      padding: 3px 10px 3px 10px;
+      cursor: pointer;
+      margin-bottom: 6px;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .recipe-tag-edit-btn:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+    .recipe-tag-edit-btn svg { width: 9px; height: 9px; transition: transform 0.2s var(--ease-spring); }
+    .recipe-tag-edit-btn.open svg { transform: rotate(180deg); }
+
+    /* Inline tag picker that drops below the chip */
+    .recipe-tag-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px 0 12px;
+      animation: fadeSlideIn 0.18s var(--ease-out) both;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     .recipe-hero-name {
       font-size: 24px;
       font-weight: 700;
@@ -3386,9 +3422,11 @@
       edits[activeRecipe.name] = {
         ingredients: activeRecipe.ingredients.map(i => ({...i})),
         directions:  [...activeRecipe.directions],
-        image:       activeRecipe.image ?? null
+        image:       activeRecipe.image ?? null,
+        tag:         activeRecipe.tag
       };
       localStorage.setItem('mealtime_recipe_edits', JSON.stringify(edits));
+      renderCards(currentFilter || 'All');
     } catch(e) {}
   }
 
@@ -3400,8 +3438,57 @@
     editBtn.classList.remove('editing');
     editBtn.innerHTML = `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 2.5a1.5 1.5 0 0 1 2.121 0l.379.379A1.5 1.5 0 0 1 13.5 5L5.5 13H3v-2.5L11 2.5Z" stroke="white" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.5 4l2.5 2.5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>`;
     document.getElementById('recipePhotoBtn').style.display = 'none';
+    // Restore plain tag label and remove picker if open
+    document.getElementById('recipeTagPicker')?.remove();
+    const tagEl = document.getElementById('recipeTag');
+    tagEl.innerHTML = '';
+    tagEl.textContent = activeRecipe.tag;
     renderIngredients();
     renderDirections();
+  }
+
+  function renderEditTag() {
+    const tagEl = document.getElementById('recipeTag');
+    tagEl.innerHTML = '';
+
+    const btn = document.createElement('button');
+    btn.className = 'recipe-tag-edit-btn';
+    btn.innerHTML = `${activeRecipe.tag}<svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const existing = document.getElementById('recipeTagPicker');
+      if (existing) { existing.remove(); btn.classList.remove('open'); return; }
+
+      btn.classList.add('open');
+      const picker = document.createElement('div');
+      picker.id = 'recipeTagPicker';
+      picker.className = 'recipe-tag-picker';
+
+      // Merge user tags + suggested tags, deduplicated
+      const allTagsSet = new Set([...SUGGESTED_TAGS, ...USER_TAGS]);
+      if (activeRecipe.tag) allTagsSet.add(activeRecipe.tag);
+      const allTags = [...allTagsSet].sort((a, b) => a.localeCompare(b));
+
+      allTags.forEach(tag => {
+        const pill = document.createElement('button');
+        pill.className = 'new-tag-pill' + (tag === activeRecipe.tag ? ' selected' : '');
+        pill.textContent = tag;
+        pill.addEventListener('click', (e) => {
+          e.stopPropagation();
+          activeRecipe.tag = tag;
+          ensureFilterPill(tag);
+          picker.remove();
+          renderEditTag(); // re-render chip with new tag
+        });
+        picker.appendChild(pill);
+      });
+
+      // Insert picker after the tag element's parent line
+      tagEl.parentNode.insertBefore(picker, tagEl.nextSibling);
+    });
+
+    tagEl.appendChild(btn);
   }
 
   function startEditing() {
@@ -3414,6 +3501,7 @@
     editBtn.classList.add('editing');
     editBtn.innerHTML = `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8.5l3.5 3.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     document.getElementById('recipePhotoBtn').style.display = '';
+    renderEditTag();
     renderIngredients();
     renderDirections();
   }
