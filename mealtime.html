@@ -1058,7 +1058,7 @@
     }
     .ingredient-item.purchased-row .ingredient-qty { opacity: 0.45; }
 
-    /* pop animation on add */
+    /* pop — icon-sized buttons (ingredient add, view-btn, etc.) */
     @keyframes pop {
       0%   { transform: scale(1); }
       35%  { transform: scale(1.5); }
@@ -1067,7 +1067,25 @@
       100% { transform: scale(1); }
     }
 
-    .ingredient-add.pop { animation: pop 0.4s var(--ease-spring); }
+    /* pop-sm — pills, small buttons */
+    @keyframes pop-sm {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.18); }
+      70%  { transform: scale(0.93); }
+      100% { transform: scale(1); }
+    }
+
+    /* pop-card — large tappable surfaces */
+    @keyframes pop-card {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.04); }
+      70%  { transform: scale(0.98); }
+      100% { transform: scale(1); }
+    }
+
+    .ingredient-add.pop  { animation: pop      0.4s var(--ease-spring); }
+    .pop-sm              { animation: pop-sm   0.32s var(--ease-spring); }
+    .pop-card            { animation: pop-card 0.36s var(--ease-spring); }
 
     /* directions */
     .direction-item {
@@ -3626,6 +3644,30 @@
       closeRecipe();
     }
   }, { passive: true });
+
+  // ── GLOBAL POP FEEDBACK ──────────────────────────
+  // Applies bounce animation to any interactive element on click/tap.
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest(
+      'button, .view-btn, .mult-btn, .add-all-btn, .card, .disc-card, ' +
+      '.new-tag-pill, .dock-handle, .recipe-add-footer-btn, .new-sheet-save-btn, ' +
+      '.header-add-btn, .mc-btn, .dock-close'
+    );
+    if (!el) return;
+
+    // Ingredient add already has its own pop via addIngredient()
+    if (el.classList.contains('ingredient-add')) return;
+
+    const isIcon  = el.classList.contains('view-btn') || el.classList.contains('mc-btn') ||
+                    el.classList.contains('dock-close') || el.classList.contains('header-add-btn');
+    const isCard  = el.classList.contains('card') || el.classList.contains('disc-card');
+    const cls     = isIcon ? 'pop' : isCard ? 'pop-card' : 'pop-sm';
+
+    el.classList.remove('pop', 'pop-sm', 'pop-card');
+    void el.offsetWidth; // force reflow to restart animation
+    el.classList.add(cls);
+    el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+  });
 </script>
 
 <!-- ── CLAUDE CHAT WIDGET ─────────────────────── -->
