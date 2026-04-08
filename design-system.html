@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mealtime — Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── DESIGN TOKENS (mirrors mealtime.html) ─── */
+    :root {
+      --bg:       #F5F4F1;
+      --white:    #FFFFFF;
+      --ink:      #1A1A1A;
+      --mid:      #989793;
+      --border:   #E6E5E1;
+      --accent:   oklch(0.623 0.178 145);
+      --accent-h: oklch(0.55 0.178 145);
+      --dock:     #1F2110;
+      --pad:      24px;
+      --radius:   16px;
+
+      /* spacing scale */
+      --space-1:  4px;
+      --space-2:  8px;
+      --space-3:  16px;
+      --space-4:  24px;
+      --space-5:  32px;
+      --space-6:  40px;
+      --space-7:  48px;
+      --space-8:  64px;
+      --space-9:  96px;
+    }
+
+    html, body {
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    /* ── DS LAYOUT ───────────────────────────────── */
+    .ds-root {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 40px 120px;
+    }
+
+    /* page header */
+    .ds-page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 24px;
+      margin-bottom: 64px;
+    }
+
+    .ds-page-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 8px;
+    }
+
+    .ds-wordmark {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      text-transform: uppercase;
+    }
+
+    .ds-page-meta {
+      font-size: 12px;
+      color: var(--mid);
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    /* sections */
+    .ds-section {
+      margin-bottom: 80px;
+    }
+
+    .ds-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ds-subsection {
+      margin-bottom: 40px;
+    }
+
+    .ds-subsection-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--mid);
+      margin-bottom: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    /* grid helpers */
+    .ds-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .ds-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* token label */
+    .ds-token {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--mid);
+      letter-spacing: 0.04em;
+      font-family: 'SF Mono', 'Fira Mono', monospace;
+    }
+
+    .ds-value {
+      font-size: 10px;
+      color: var(--mid);
+      font-family: 'SF Mono', 'Fira Mono', monospace;
+    }
+
+    /* ── 1. COLOR TOKENS ─────────────────────────── */
+    .color-swatch {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .color-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 80px;
+    }
+
+    .color-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* ── 2. TYPOGRAPHY ───────────────────────────── */
+    .type-row {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .type-row:first-child { border-top: 1px solid var(--border); }
+
+    .type-meta {
+      width: 160px;
+      flex-shrink: 0;
+    }
+
+    .type-label { font-size: 10px; font-weight: 600; color: var(--mid); font-family: monospace; }
+    .type-detail { font-size: 10px; color: var(--mid); margin-top: 2px; font-family: monospace; }
+
+    /* ── 3. SPACING SCALE ───────────────────────── */
+    .space-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 0;
+    }
+
+    .space-bar-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .space-bar {
+      height: 24px;
+      background: var(--accent);
+      border-radius: 4px;
+      opacity: 0.85;
+    }
+
+    .space-meta {
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    /* ── 4. RADII ───────────────────────────────── */
+    .radius-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .radius-demo {
+      width: 64px;
+      height: 64px;
+      background: var(--accent);
+      opacity: 0.15;
+      border: 1.5px solid var(--accent);
+    }
+
+    /* ── 5. COMPONENTS ──────────────────────────── */
+    .comp-canvas {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid var(--border);
+    }
+
+    .comp-canvas.dark {
+      background: var(--dock);
+    }
+
+    .comp-canvas.bg {
+      background: var(--bg);
+    }
+
+    /* -- Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      background: var(--ink);
+      color: white;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.82; }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--ink); }
+
+    .btn-accent {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-accent:hover { opacity: 0.88; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: var(--mid);
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+    .btn-ghost:hover { background: var(--border); color: var(--ink); }
+
+    .btn-destructive {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255,59,48,0.1);
+      color: #FF3B30;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-destructive:hover { background: rgba(255,59,48,0.18); }
+
+    /* -- Pills / Chips */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .pill-default { background: var(--white); border: 1.5px solid var(--border); color: var(--ink); }
+    .pill-active   { background: var(--ink);   border: 1.5px solid var(--ink);    color: white; }
+    .pill-accent   { background: var(--accent); border: 1.5px solid var(--accent); color: white; }
+    .pill-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: default;
+    }
+
+    /* -- Scale pills (mult-btn) */
+    .mult-btn {
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 4px 11px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--mid);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mult-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    /* -- Ingredient button states */
+    .ing-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      color: var(--mid);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .ing-btn.added     { background: var(--accent); border-color: var(--accent); color: white; }
+    .ing-btn.purchased { background: var(--accent); border-color: var(--accent); color: white; opacity: 0.38; cursor: default; pointer-events: none; }
+
+    /* -- Input */
+    .ds-input {
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      border-radius: 10px;
+      padding: 10px 14px;
+      outline: none;
+      width: 240px;
+      transition: border-color 0.15s;
+    }
+    .ds-input:focus { border-color: var(--accent); }
+    .ds-input::placeholder { color: var(--mid); }
+
+    .ds-textarea {
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 8px 10px;
+      width: 100%;
+      outline: none;
+      resize: none;
+      min-height: 60px;
+      transition: border-color 0.15s;
+    }
+    .ds-textarea:focus { border-color: var(--accent); }
+
+    /* -- Badge / count */
+    .ds-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 6px;
+    }
+
+    /* -- Status pills */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .status-added {
+      background: oklch(0.623 0.178 145 / 0.12);
+      color: var(--accent);
+    }
+    .status-added::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* -- Recipe card (mini) */
+    .mini-card {
+      width: 140px;
+      background: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .mini-card-img {
+      height: 88px;
+      background: #C9D4C0;
+    }
+    .mini-card-body { padding: 10px 12px 12px; }
+    .mini-card-tag { font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); margin-bottom: 3px; }
+    .mini-card-name { font-size: 13px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+    .mini-card-meta { font-size: 11px; color: var(--mid); margin-top: 4px; }
+
+    /* -- Ingredient row */
+    .ing-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ing-row:last-child { border-bottom: none; }
+    .ing-name { flex: 1; font-size: 14px; color: var(--ink); }
+    .ing-qty { font-size: 13px; color: var(--mid); }
+    .ing-name.purchased-name { text-decoration: line-through; color: var(--mid); }
+
+    /* -- Direction row */
+    .dir-row { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+    .dir-row:last-child { border-bottom: none; }
+    .dir-num { font-size: 11px; font-weight: 700; color: var(--mid); width: 18px; flex-shrink: 0; padding-top: 2px; }
+    .dir-text { font-size: 14px; line-height: 1.65; color: var(--ink); }
+
+    /* -- Toast */
+    .ds-toast {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--ink);
+      color: white;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    }
+    .ds-toast-btn {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* -- Sheet header preview */
+    .sheet-preview {
+      background: var(--white);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .sheet-hero {
+      height: 140px;
+      background: linear-gradient(135deg, #C9D4C0 0%, #B8C9B0 100%);
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      padding: 16px;
+    }
+    .sheet-hero-back {
+      width: 32px; height: 32px;
+      background: rgba(0,0,0,0.22);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      cursor: pointer;
+    }
+    .sheet-info { padding: 16px 20px 20px; }
+    .sheet-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .sheet-name { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.15; color: var(--ink); }
+    .sheet-meta { display: flex; gap: 12px; margin-top: 8px; }
+    .sheet-meta span { font-size: 12px; color: var(--mid); display: flex; align-items: center; gap: 4px; }
+
+    /* -- Dock preview */
+    .dock-preview {
+      background: var(--dock);
+      border-radius: 20px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .dock-icon {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      flex-shrink: 0;
+    }
+    .dock-text { flex: 1; }
+    .dock-title { font-size: 14px; font-weight: 600; color: white; }
+    .dock-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+    /* ── 6. ICONS ───────────────────────────────── */
+    .icon-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+    }
+    .icon-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 16px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      width: 88px;
+    }
+    .icon-card:hover { background: var(--bg); }
+    .icon-card svg { color: var(--ink); }
+    .icon-name { font-size: 9px; color: var(--mid); text-align: center; font-family: monospace; }
+
+    /* ── 7. ELEVATION ───────────────────────────── */
+    .elev-card {
+      width: 120px;
+      height: 80px;
+      background: var(--white);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .elev-label { font-size: 11px; font-weight: 500; color: var(--mid); margin-top: 10px; text-align: center; }
+
+    /* ── DIVIDER ─────────────────────────────────── */
+    .ds-divider { height: 1px; background: var(--border); margin: 40px 0; }
+
+    /* ── CODE SNIPPET ────────────────────────────── */
+    .ds-code {
+      display: inline-block;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Mono', monospace;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 7px;
+      color: var(--ink);
+    }
+
+    /* token table */
+    .token-table { width: 100%; border-collapse: collapse; }
+    .token-table th {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--mid);
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .token-table td {
+      padding: 12px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .token-table tr:last-child td { border-bottom: none; }
+    .token-table tr:hover td { background: var(--bg); }
+    .token-table .td-token { font-family: monospace; font-size: 12px; color: var(--ink); }
+    .token-table .td-value { font-family: monospace; font-size: 12px; color: var(--mid); }
+    .token-swatch {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.08);
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="ds-root">
+
+  <!-- PAGE HEADER -->
+  <div class="ds-page-header">
+    <div>
+      <div class="ds-page-title">Design System</div>
+      <div class="ds-wordmark">Mealtime</div>
+    </div>
+    <div class="ds-page-meta">
+      Version 1.0<br>
+      Inter · 8px Grid · oklch color<br>
+      <a href="mealtime.html" style="color:var(--accent);text-decoration:none;font-weight:600;">← Back to App</a>
+    </div>
+  </div>
+
+
+  <!-- ── 1. COLOR TOKENS ──────────────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">01 — Color Tokens</div>
+
+    <div class="ds-row" style="margin-bottom:40px;">
+      <div class="color-card">
+        <div class="color-swatch" style="background:#F5F4F1;"></div>
+        <div class="ds-token">--bg</div>
+        <div class="ds-value">#F5F4F1</div>
+        <div class="color-name">Background</div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FFFFFF;box-shadow:0 0 0 1px var(--border);"></div>
+        <div class="ds-token">--white</div>
+        <div class="ds-value">#FFFFFF</div>
+        <div class="color-name">Surface</div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#1A1A1A;"></div>
+        <div class="ds-token">--ink</div>
+        <div class="ds-value">#1A1A1A</div>
+        <div class="color-name">Primary Text</div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#989793;"></div>
+        <div class="ds-token">--mid</div>
+        <div class="ds-value">#989793</div>
+        <div class="color-name">Secondary Text</div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#E6E5E1;"></div>
+        <div class="ds-token">--border</div>
+        <div class="ds-value">#E6E5E1</div>
+        <div class="color-name">Dividers</div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:oklch(0.623 0.178 145);"></div>
+        <div class="ds-token">--accent</div>
+        <div class="ds-value">oklch(0.623<br>0.178 145)</div>
+        <div class="color-name">Primary Action</div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#1F2110;"></div>
+        <div class="ds-token">--dock</div>
+        <div class="ds-value">#1F2110</div>
+        <div class="color-name">Dock / Dark</div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Accent tints</div>
+      <div class="ds-row">
+        <div class="color-card">
+          <div class="color-swatch" style="background:oklch(0.623 0.178 145);"></div>
+          <div class="ds-value">100%</div>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch" style="background:oklch(0.623 0.178 145 / 0.65);"></div>
+          <div class="ds-value">65%</div>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch" style="background:oklch(0.623 0.178 145 / 0.38);"></div>
+          <div class="ds-value">38% — purchased</div>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch" style="background:oklch(0.623 0.178 145 / 0.12);"></div>
+          <div class="ds-value">12% — tag bg</div>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch" style="background:oklch(0.623 0.178 145 / 0.08);"></div>
+          <div class="ds-value">8% — hover</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">System / Semantic</div>
+      <div class="ds-row">
+        <div class="color-card">
+          <div class="color-swatch" style="background:#FF3B30;"></div>
+          <div class="color-name">Destructive</div>
+          <div class="ds-value">#FF3B30</div>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch" style="background:rgba(255,59,48,0.1);box-shadow:0 0 0 1px rgba(255,59,48,0.3);"></div>
+          <div class="color-name">Destr. Surface</div>
+          <div class="ds-value">rgba(255,59,48<br>0.1)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 2. TYPOGRAPHY ─────────────────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">02 — Typography · Inter</div>
+
+    <div class="ds-row" style="margin-bottom:24px;">
+      <div>
+        <div class="ds-subsection-label">Weights</div>
+        <div style="display:flex;gap:24px;align-items:baseline;">
+          <div style="font-size:24px;font-weight:400;">Regular 400</div>
+          <div style="font-size:24px;font-weight:500;">Medium 500</div>
+          <div style="font-size:24px;font-weight:600;">SemiBold 600</div>
+          <div style="font-size:24px;font-weight:700;">Bold 700</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Wordmark</div>
+        <div class="type-detail">22px / 700 / uppercase<br>tracking: -0.3px</div>
+      </div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.3px;text-transform:uppercase;">MEALTIME</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Greeting H1</div>
+        <div class="type-detail">28px / 600<br>tracking: -0.5px · lh: 1.2</div>
+      </div>
+      <div style="font-size:28px;font-weight:600;letter-spacing:-0.5px;line-height:1.2;">Good afternoon Jonden</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Recipe Title</div>
+        <div class="type-detail">24px / 700<br>tracking: -0.4px · lh: 1.15</div>
+      </div>
+      <div style="font-size:24px;font-weight:700;letter-spacing:-0.4px;line-height:1.15;">Lemon Herb Pasta</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Card Name</div>
+        <div class="type-detail">16px / 700<br>tracking: -0.2px · lh: 1.2</div>
+      </div>
+      <div style="font-size:16px;font-weight:700;letter-spacing:-0.2px;line-height:1.2;">Avocado Toast</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Body</div>
+        <div class="type-detail">14px / 400 · lh: 1.65</div>
+      </div>
+      <div style="font-size:14px;line-height:1.65;">Bring a large pot of well-salted water to a boil. Cook spaghetti until al dente.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Body Small</div>
+        <div class="type-detail">13px / 400 · lh: 1.5</div>
+      </div>
+      <div style="font-size:13px;line-height:1.5;color:var(--mid);">25 min · Serves 2</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Meta / Caption</div>
+        <div class="type-detail">12px / 500 · color: --mid</div>
+      </div>
+      <div style="font-size:12px;font-weight:500;color:var(--mid);">3 of 6 added</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">
+        <div class="type-label">Label / Eyebrow</div>
+        <div class="type-detail">10–11px / 600<br>tracking: 0.06–0.14em<br>uppercase</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);">Ingredients</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-top:6px;">Pasta</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 3. SPACING SCALE ──────────────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">03 — Spacing Scale · 8px Base Grid</div>
+
+    <div style="background:var(--white);border-radius:16px;padding:32px;border:1px solid var(--border);">
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--space-1</span><br><span class="ds-value">4px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:4px;"></div><span style="font-size:11px;color:var(--mid);">Micro — icon gap, badge pad</span></div>
+      </div>
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--space-2</span><br><span class="ds-value">8px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:8px;"></div><span style="font-size:11px;color:var(--mid);">Tight — inline gap, row padding</span></div>
+      </div>
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--space-3</span><br><span class="ds-value">16px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:16px;"></div><span style="font-size:11px;color:var(--mid);">Base — section padding, component gap</span></div>
+      </div>
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--pad / --space-4</span><br><span class="ds-value">24px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:24px;"></div><span style="font-size:11px;color:var(--mid);">Page horizontal pad — used everywhere via var(--pad)</span></div>
+      </div>
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--space-5</span><br><span class="ds-value">32px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:32px;"></div><span style="font-size:11px;color:var(--mid);">Large gap — section to section</span></div>
+      </div>
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--space-6</span><br><span class="ds-value">40px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:40px;"></div><span style="font-size:11px;color:var(--mid);">XL — major section breaks</span></div>
+      </div>
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--space-7</span><br><span class="ds-value">48px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:48px;"></div><span style="font-size:11px;color:var(--mid);">2XL — hero areas, page headers</span></div>
+      </div>
+      <div class="space-row">
+        <div class="space-meta"><span class="ds-token">--dock-h / --space-9</span><br><span class="ds-value">96px</span></div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:96px;opacity:0.4;"></div><span style="font-size:11px;color:var(--mid);">Dock height — bottom scroll buffer</span></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 4. BORDER RADIUS ──────────────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">04 — Border Radius</div>
+    <div class="ds-row">
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:4px;"></div>
+        <div class="ds-token">4px</div>
+        <div class="ds-value">Micro chips,<br>drag indicators</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:6px;"></div>
+        <div class="ds-token">6px</div>
+        <div class="ds-value">Edit action<br>buttons</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:8px;"></div>
+        <div class="ds-token">8px</div>
+        <div class="ds-value">Textareas,<br>inputs (alt)</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:10px;"></div>
+        <div class="ds-token">10px</div>
+        <div class="ds-value">Inputs,<br>small cards</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:12px;"></div>
+        <div class="ds-token">12px</div>
+        <div class="ds-value">New recipe<br>modal</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:var(--radius);"></div>
+        <div class="ds-token">--radius / 16px</div>
+        <div class="ds-value">Cards, sheets,<br>panels</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:20px;"></div>
+        <div class="ds-token">20px</div>
+        <div class="ds-value">Dock bar</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:999px;"></div>
+        <div class="ds-token">999px</div>
+        <div class="ds-value">Pills, buttons,<br>icon circles</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 5. COMPONENTS ─────────────────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">05 — Components</div>
+
+    <!-- Buttons -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Buttons</div>
+      <div class="comp-canvas">
+        <div class="ds-row" style="align-items:center;">
+          <div class="ds-col">
+            <button class="btn-primary">+ Add Recipe</button>
+            <div class="ds-token">btn-primary</div>
+          </div>
+          <div class="ds-col">
+            <button class="btn-accent">✓ Added</button>
+            <div class="ds-token">btn-accent</div>
+          </div>
+          <div class="ds-col">
+            <button class="btn-secondary">Edit</button>
+            <div class="ds-token">btn-secondary</div>
+          </div>
+          <div class="ds-col">
+            <button class="btn-ghost">Cancel</button>
+            <div class="ds-token">btn-ghost</div>
+          </div>
+          <div class="ds-col">
+            <button class="btn-destructive">Delete Recipe</button>
+            <div class="ds-token">btn-destructive</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pills & Filter -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Pills &amp; Chips</div>
+      <div class="comp-canvas">
+        <div class="ds-row" style="align-items:center;flex-wrap:wrap;gap:12px;">
+          <div class="ds-col"><span class="pill pill-active">All</span><div class="ds-token">active</div></div>
+          <div class="ds-col"><span class="pill pill-default">Pasta</span><div class="ds-token">default</div></div>
+          <div class="ds-col"><span class="pill pill-default">Mains</span><div class="ds-token">default</div></div>
+          <div class="ds-col"><span class="pill pill-accent">Added</span><div class="ds-token">accent</div></div>
+          <div class="ds-col"><span class="pill-tag">BREAKFAST</span><div class="ds-token">tag / eyebrow</div></div>
+          <div class="ds-col">
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span class="mult-btn active">×1</span>
+              <span class="mult-btn">×2</span>
+              <span class="mult-btn">×3</span>
+              <span class="mult-btn">×4</span>
+            </div>
+            <div class="ds-token">scale pills</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inputs -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Form Inputs</div>
+      <div class="comp-canvas">
+        <div class="ds-row" style="flex-direction:column;gap:16px;max-width:400px;">
+          <div>
+            <input class="ds-input" placeholder="Recipe name…" />
+            <div class="ds-token" style="margin-top:6px;">input — default + :focus (var(--accent) border)</div>
+          </div>
+          <div style="width:300px;">
+            <textarea class="ds-textarea" rows="2" placeholder="Describe the step…"></textarea>
+            <div class="ds-token" style="margin-top:6px;">textarea — direction edit</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ingredient rows -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Ingredient Row States</div>
+      <div class="comp-canvas" style="max-width:400px;">
+        <div class="ing-row">
+          <span class="ing-name">Spaghetti</span>
+          <span class="ing-qty">400g</span>
+          <button class="ing-btn">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div style="font-size:10px;color:var(--mid);font-family:monospace;padding:4px 0 12px;">Default — not added</div>
+        <div class="ing-row">
+          <span class="ing-name">Lemon</span>
+          <span class="ing-qty">2 whole</span>
+          <button class="ing-btn added">
+            <svg width="11" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div style="font-size:10px;color:var(--mid);font-family:monospace;padding:4px 0 12px;">Added — in shopping list</div>
+        <div class="ing-row">
+          <span class="ing-name purchased-name">Garlic</span>
+          <span class="ing-qty" style="opacity:0.45;">3 cloves</span>
+          <button class="ing-btn purchased">
+            <svg width="11" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div style="font-size:10px;color:var(--mid);font-family:monospace;padding:4px 0 4px;">Purchased — checked off in shopping list (non-interactive)</div>
+      </div>
+    </div>
+
+    <!-- Recipe sheet preview -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Recipe Sheet</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        <div>
+          <div class="sheet-preview" style="width:300px;">
+            <div class="sheet-hero">
+              <button class="sheet-hero-back">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="sheet-info">
+              <div class="sheet-tag">Pasta</div>
+              <div class="sheet-name">Lemon Herb Pasta</div>
+              <div class="sheet-meta">
+                <span>
+                  <svg viewBox="0 0 14 14" fill="none" width="12" height="12"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5V7l1.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                  25 min
+                </span>
+                <span>
+                  <svg viewBox="0 0 14 14" fill="none" width="12" height="12"><circle cx="5" cy="4" r="2" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="4" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M1 11c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                  Serves 2
+                </span>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;margin-top:12px;">
+                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--mid);">Scale</span>
+                <span class="mult-btn active">×1</span>
+                <span class="mult-btn">×2</span>
+                <span class="mult-btn">×3</span>
+                <span class="mult-btn">×4</span>
+              </div>
+            </div>
+          </div>
+          <div class="ds-token" style="margin-top:10px;">Recipe Sheet — info block</div>
+        </div>
+
+        <!-- Dock -->
+        <div>
+          <div style="width:300px;">
+            <div class="dock-preview">
+              <div class="dock-icon">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="2" rx="1" fill="white"/><rect x="2" y="9" width="16" height="2" rx="1" fill="white"/><rect x="2" y="14" width="10" height="2" rx="1" fill="white"/></svg>
+              </div>
+              <div class="dock-text">
+                <div class="dock-title">Shopping List</div>
+                <div class="dock-sub">11 items · 2 checked off</div>
+              </div>
+              <div class="ds-badge">11</div>
+            </div>
+          </div>
+          <div class="ds-token" style="margin-top:10px;">Dock bar (--dock, dark)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Direction row -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Direction Step</div>
+      <div class="comp-canvas" style="max-width:400px;">
+        <div class="dir-row">
+          <div class="dir-num">1</div>
+          <div class="dir-text">Bring a large pot of well-salted water to a boil. Cook spaghetti until al dente according to package instructions.</div>
+        </div>
+        <div class="dir-row">
+          <div class="dir-num">2</div>
+          <div class="dir-text">While pasta cooks, zest and juice the lemon. Finely grate the Parmesan.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Undo Toast</div>
+      <div class="comp-canvas">
+        <div class="ds-toast">
+          <span>"Avocado Toast" deleted</span>
+          <button class="ds-toast-btn">Undo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badge -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-label">Badge</div>
+      <div class="comp-canvas">
+        <div class="ds-row" style="align-items:center;gap:24px;">
+          <div class="ds-col" style="align-items:center;">
+            <div class="ds-badge">12</div>
+            <div class="ds-token">count badge</div>
+          </div>
+          <div class="ds-col" style="align-items:center;">
+            <span class="status-pill status-added">Added</span>
+            <div class="ds-token">status pill</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 6. ELEVATION / SHADOW ─────────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">06 — Elevation &amp; Shadow</div>
+    <div class="ds-row">
+      <div class="ds-col" style="align-items:center;">
+        <div class="elev-card" style="box-shadow:none;border:1px solid var(--border);"></div>
+        <div class="ds-token" style="text-align:center;">Level 0<br>border only</div>
+      </div>
+      <div class="ds-col" style="align-items:center;">
+        <div class="elev-card" style="box-shadow:0 2px 10px rgba(0,0,0,0.07);"></div>
+        <div class="ds-token" style="text-align:center;">Level 1<br>0 2px 10px / 7%<br>Cards</div>
+      </div>
+      <div class="ds-col" style="align-items:center;">
+        <div class="elev-card" style="box-shadow:0 4px 24px rgba(0,0,0,0.12);"></div>
+        <div class="ds-token" style="text-align:center;">Level 2<br>0 4px 24px / 12%<br>Drag ghost, toast</div>
+      </div>
+      <div class="ds-col" style="align-items:center;">
+        <div class="elev-card" style="box-shadow:0 8px 40px rgba(0,0,0,0.18);"></div>
+        <div class="ds-token" style="text-align:center;">Level 3<br>0 8px 40px / 18%<br>Sheets, overlays</div>
+      </div>
+      <div class="ds-col" style="align-items:center;">
+        <div class="elev-card" style="box-shadow:0 2px 8px oklch(0.623 0.178 145 / 0.35);"></div>
+        <div class="ds-token" style="text-align:center;">Accent glow<br>oklch / 35%<br>Active states</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 7. ICONS ───────────────────────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">07 — Iconography · 16px stroke, round linecap</div>
+    <div class="comp-canvas" style="padding:0;">
+      <div class="icon-grid">
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <div class="icon-name">plus<br>add</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="icon-name">check<br>done</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 12 12" fill="none"><path d="M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <div class="icon-name">minus<br>remove</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <div class="icon-name">close<br>delete</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="icon-name">chevron<br>down</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="icon-name">chevron<br>left</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 12 8" fill="none"><path d="M2 8l4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="icon-name">chevron<br>up</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5V7l1.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <div class="icon-name">clock<br>time</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4" r="2" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="4" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M1 11c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <div class="icon-name">people<br>serves</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 16 14" fill="none"><path d="M6 1.5 4.5 3.5H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2.5L10 1.5H6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.4"/></svg>
+          <div class="icon-name">camera<br>photo</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M11 2.5a1.5 1.5 0 0 1 2.121 0l.379.379A1.5 1.5 0 0 1 13.5 5L5.5 13H3v-2.5L11 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.5 4l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <div class="icon-name">edit<br>pencil</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="icon-name">drag<br>handle</div>
+        </div>
+        <div class="icon-card">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="2" rx="1" fill="currentColor"/><rect x="2" y="9" width="16" height="2" rx="1" fill="currentColor"/><rect x="2" y="14" width="10" height="2" rx="1" fill="currentColor"/></svg>
+          <div class="icon-name">list<br>shopping</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 8. TOKEN REFERENCE TABLE ──────────────── -->
+  <div class="ds-section">
+    <div class="ds-section-label">08 — CSS Custom Properties Reference</div>
+    <div style="background:var(--white);border-radius:16px;border:1px solid var(--border);overflow:hidden;">
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Value</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="td-token">--bg</td><td><span class="token-swatch" style="background:#F5F4F1;"></span><span class="td-value">#F5F4F1</span></td><td style="font-size:12px;color:var(--mid);">App background, header bg</td></tr>
+          <tr><td class="td-token">--white</td><td><span class="token-swatch" style="background:#fff;"></span><span class="td-value">#FFFFFF</span></td><td style="font-size:12px;color:var(--mid);">Cards, sheets, inputs</td></tr>
+          <tr><td class="td-token">--ink</td><td><span class="token-swatch" style="background:#1A1A1A;"></span><span class="td-value">#1A1A1A</span></td><td style="font-size:12px;color:var(--mid);">Primary text, headings, dark buttons</td></tr>
+          <tr><td class="td-token">--mid</td><td><span class="token-swatch" style="background:#989793;"></span><span class="td-value">#989793</span></td><td style="font-size:12px;color:var(--mid);">Secondary text, metadata, labels</td></tr>
+          <tr><td class="td-token">--border</td><td><span class="token-swatch" style="background:#E6E5E1;"></span><span class="td-value">#E6E5E1</span></td><td style="font-size:12px;color:var(--mid);">Dividers, input borders, default pill borders</td></tr>
+          <tr><td class="td-token">--accent</td><td><span class="token-swatch" style="background:oklch(0.623 0.178 145);"></span><span class="td-value">oklch(0.623 0.178 145)</span></td><td style="font-size:12px;color:var(--mid);">CTAs, checkmarks, tags, active states</td></tr>
+          <tr><td class="td-token">--dock</td><td><span class="token-swatch" style="background:#1F2110;"></span><span class="td-value">#1F2110</span></td><td style="font-size:12px;color:var(--mid);">Bottom dock / shopping list bar</td></tr>
+          <tr><td class="td-token">--pad</td><td><span class="td-value">24px</span></td><td style="font-size:12px;color:var(--mid);">Global horizontal padding — used app-wide</td></tr>
+          <tr><td class="td-token">--radius</td><td><span class="td-value">16px</span></td><td style="font-size:12px;color:var(--mid);">Cards, sheets, panels</td></tr>
+          <tr><td class="td-token">--dock-h</td><td><span class="td-value">96px</span></td><td style="font-size:12px;color:var(--mid);">Dock bar height, scroll buffer</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding-top:32px;border-top:1px solid var(--border);">
+    <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);">Mealtime Design System · v1.0</div>
+    <div style="font-size:12px;color:var(--mid);margin-top:6px;">Inter · oklch color space · 8px grid · Single-file architecture</div>
+    <a href="mealtime.html" style="display:inline-block;margin-top:16px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;">← Back to App</a>
+  </div>
+
+</div>
+</body>
+</html>

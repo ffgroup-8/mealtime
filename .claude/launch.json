@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Mealtime (static)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-I", "-c", "import http.server,socketserver,functools; D='/tmp'; H=functools.partial(http.server.SimpleHTTPRequestHandler,directory=D); socketserver.TCPServer(('',3000),H).serve_forever()"],
+      "port": 3000
+    }
+  ]
+}
