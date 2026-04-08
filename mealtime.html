@@ -1763,10 +1763,53 @@
         border-radius: 0;
         left: 0;
         transform: translateY(102%);
+        overflow-y: auto;
       }
       .recipe-sheet.open {
         transform: translateY(0);
       }
+
+      /* Card expand: sheet starts clipped to card bounds, expands to full screen */
+      .recipe-sheet.card-expand-init {
+        transform: translateY(0) !important;
+        clip-path: inset(var(--expand-t) var(--expand-r) var(--expand-b) var(--expand-l) round 14px) !important;
+        transition: none !important;
+      }
+      .recipe-sheet.card-expand-init.open {
+        clip-path: inset(0px 0px 0px 0px round 0px) !important;
+        transition: clip-path 0.58s cubic-bezier(0.32, 0.72, 0, 1) !important;
+      }
+
+      /* Make full recipe scrollable — body becomes part of normal flow */
+      .recipe-body {
+        overflow: visible !important;
+        height: auto !important;
+        flex: none !important;
+        padding-bottom: 40px;
+      }
+
+      /* Back chevron + edit button: fixed to top of the full-screen sheet
+         (fixed inside a transform = fixed to that transformed ancestor) */
+      .recipe-hero-back {
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 50;
+      }
+      .recipe-hero-edit {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        z-index: 50;
+      }
+      /* Camera button too (edit mode) */
+      .recipe-hero-camera {
+        position: fixed;
+        top: 18px;
+        left: 64px;
+        z-index: 50;
+      }
+
 
       /* New recipe sheet — same */
       .recipe-new-sheet {
@@ -2618,7 +2661,7 @@
 
       // Click card body → open recipe sheet
       card.addEventListener('click', (e) => {
-        if (!e.target.closest('.disc-btn')) openFeaturedRecipe(i);
+        if (!e.target.closest('.disc-btn')) openFeaturedRecipe(i, card);
       });
 
       strip.appendChild(card);
@@ -2713,7 +2756,7 @@
             <span class="card-time">${r.time}</span>
           </div>
         </div>`;
-      card.addEventListener('click', () => openRecipe(realIdx));
+      card.addEventListener('click', () => openRecipe(realIdx, card));
       attachLongPress(card, realIdx);
       grid.appendChild(card);
     });
@@ -3112,7 +3155,7 @@
     return q.replace(m[1], formatted);
   }
 
-  function _openSheet(r) {
+  function _openSheet(r, cardEl) {
     activeRecipe      = r;
     addedIngredients  = new Map();
     currentMultiplier = 1;
@@ -3153,8 +3196,9 @@
     // render directions
     renderDirections();
 
-    // scroll body to top
+    // scroll recipe to top (desktop: body div; mobile: the sheet itself)
     document.getElementById('recipeBody').scrollTop = 0;
+    recipeSheet.scrollTop = 0;
 
     // show correct footer + edit button: featured+unadded = "Add to My Recipes"; else = shopping dock
     const isFeaturedUnadded = activeFeaturedIdx !== null && !addedFeatured.has(activeFeaturedIdx);
@@ -3164,25 +3208,43 @@
     // preview mode hides ingredient add buttons + "Add to Shopping List"
     recipeSheet.classList.toggle('preview-mode', isFeaturedUnadded);
 
-    // open
-    recipeSheet.classList.add('open');
+    // open — on mobile with a card element, morph from card bounds
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && cardEl) {
+      const rect = cardEl.getBoundingClientRect();
+      const vw   = window.innerWidth;
+      const vh   = window.innerHeight;
+      recipeSheet.style.setProperty('--expand-t', rect.top    + 'px');
+      recipeSheet.style.setProperty('--expand-r', (vw - rect.right)  + 'px');
+      recipeSheet.style.setProperty('--expand-b', (vh - rect.bottom) + 'px');
+      recipeSheet.style.setProperty('--expand-l', rect.left   + 'px');
+      recipeSheet.classList.add('card-expand-init');
+      void recipeSheet.offsetHeight; // force reflow so initial clip is painted
+      recipeSheet.classList.add('open');
+      recipeSheet.addEventListener('transitionend', () => {
+        recipeSheet.classList.remove('card-expand-init');
+        ['--expand-t','--expand-r','--expand-b','--expand-l'].forEach(v => recipeSheet.style.removeProperty(v));
+      }, { once: true });
+    } else {
+      recipeSheet.classList.add('open');
+    }
     scrim.classList.add('visible');
     document.body.style.overflow = 'hidden';
   }
 
-  function openRecipe(idx) {
+  function openRecipe(idx, cardEl) {
     activeFeaturedIdx = null;
-    _openSheet(RECIPES[idx]);
+    _openSheet(RECIPES[idx], cardEl);
   }
 
-  function openFeaturedRecipe(idx) {
+  function openFeaturedRecipe(idx, cardEl) {
     activeFeaturedIdx = idx;
-    _openSheet(FEATURED_RECIPES[idx]);
+    _openSheet(FEATURED_RECIPES[idx], cardEl);
   }
 
   function closeRecipe() {
     if (isEditing) doneEditing(false); // sync without saving if sheet closes mid-edit
-    recipeSheet.classList.remove('open');
+    recipeSheet.classList.remove('open', 'card-expand-init');
     recipeSheet.classList.remove('preview-mode');
     scrim.classList.remove('visible');
     document.body.style.overflow = '';
