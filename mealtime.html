@@ -707,6 +707,7 @@
     }
 
     .list-item.checked .list-check { background: var(--accent); border-color: var(--accent); }
+    .list-check.pop { animation: pop 0.3s var(--ease-spring); }
 
     .list-item.checked .list-check::after {
       content: '';
@@ -2061,12 +2062,12 @@
       <button class="dock-clear-btn" id="clearListBtn">Clear list</button>
     </div>
     <div id="shoppingList"></div>
-    <div class="dock-add-row" id="dockAddRow">
+    <form class="dock-add-row" id="dockAddRow" action="javascript:void(0)" onsubmit="return false;">
       <div class="dock-add-icon">
         <svg viewBox="0 0 10 10" fill="none"><path d="M5 1v8M1 5h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </div>
-      <input class="dock-add-input" id="dockAddInput" type="text" placeholder="Add item…" autocomplete="off" />
-    </div>
+      <input class="dock-add-input" id="dockAddInput" type="text" placeholder="Add item…" autocomplete="off" enterkeyhint="done" inputmode="text" />
+    </form>
   </div>
 </div>
 
@@ -2375,8 +2376,13 @@
         e.stopPropagation();
         item.checked = !item.checked;
         saveShopping();
-        renderList();
-        updateDockSub();
+        // Animate the check circle before re-render
+        const check = el.querySelector('.list-check');
+        check.classList.add('pop');
+        check.addEventListener('animationend', () => {
+          renderList();
+          updateDockSub();
+        }, { once: true });
       });
       listEl.appendChild(el);
     });
@@ -2446,25 +2452,25 @@
 
   // Add item input
   const dockAddInput = document.getElementById('dockAddInput');
+  const dockAddRow   = document.getElementById('dockAddRow');
+
+  function submitDockItem() {
+    const name = dockAddInput.value.trim();
+    if (!name) return;
+    SHOPPING.push({ id: _shopId++, name, qty: '', checked: false });
+    saveShopping();
+    dockAddInput.value = '';
+    renderList();
+    updateDockSub();
+    document.getElementById('shoppingList').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  dockAddRow.addEventListener('submit', (e) => { e.preventDefault(); submitDockItem(); });
   dockAddInput.addEventListener('click', (e) => e.stopPropagation());
   dockAddInput.addEventListener('keydown', (e) => {
     e.stopPropagation();
-    if (e.key === 'Enter') {
-      const name = dockAddInput.value.trim();
-      if (name) {
-        SHOPPING.push({ id: _shopId++, name, qty: '', checked: false });
-        saveShopping();
-        dockAddInput.value = '';
-        renderList();
-        updateDockSub();
-        // scroll list to bottom to show new item
-        document.getElementById('shoppingList').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-    if (e.key === 'Escape') {
-      dockAddInput.value = '';
-      dockAddInput.blur();
-    }
+    if (e.key === 'Enter') { e.preventDefault(); submitDockItem(); }
+    if (e.key === 'Escape') { dockAddInput.value = ''; dockAddInput.blur(); }
   });
 
   /* ── RECIPE GRID ──────────────────────────────── */
@@ -2728,7 +2734,8 @@
 
   function renderCards(filter) {
     grid.innerHTML = '';
-    const filtered = filter === 'All' ? RECIPES : RECIPES.filter(r => r.tag === filter);
+    const filtered = (filter === 'All' ? RECIPES : RECIPES.filter(r => r.tag === filter))
+      .slice().sort((a, b) => a.name.localeCompare(b.name));
     countPill.textContent = filtered.length;
     filtered.forEach((r, recipeIdx) => {
       const realIdx = RECIPES.indexOf(r);
@@ -2790,7 +2797,147 @@
     '#F0DFA0','#C5D5B2','#D0C4BC','#B8C4C8',
   ];
 
-  const RECIPE_TAGS = ['Pasta','Mains','Bowls','Fish','Salads','Soups','Breakfast','Dessert','Snacks'];
+  // Suggested categories shown as hints before the user builds their own list
+  const SUGGESTED_TAGS = [
+    'Appetizers','BBQ','Bowls','Breakfast','Brunch','Burgers','Chicken',
+    'Curry','Dessert','Fish','Grains','Healthy','Italian','Lunch',
+    'Mains','Mexican','Pasta','Pizza','Pork','Protein','Quick Meals',
+    'Salads','Sandwiches','Seafood','Sides','Snacks','Soups',
+    'Steak','Vegan','Vegetarian','Wraps'
+  ];
+
+  // User's personal category list — persisted in localStorage, always sorted A-Z
+  let USER_TAGS = (() => {
+    try { return JSON.parse(localStorage.getItem('mealtime_tags')) || []; } catch { return []; }
+  })();
+  function saveUserTags() {
+    USER_TAGS.sort((a, b) => a.localeCompare(b));
+    localStorage.setItem('mealtime_tags', JSON.stringify(USER_TAGS));
+  }
+  function addUserTag(tag) {
+    tag = tag.trim();
+    if (!tag || USER_TAGS.includes(tag)) return false;
+    USER_TAGS.push(tag);
+    saveUserTags();
+    return true;
+  }
+  function removeUserTag(tag) {
+    const inUse = RECIPES.some(r => r.tag === tag);
+    if (inUse) return false;
+    USER_TAGS = USER_TAGS.filter(t => t !== tag);
+    saveUserTags();
+    return true;
+  }
+
+  // ── CATEGORY / TAG MANAGEMENT ─────────────────────
+  function renderTagPills() {
+    const tagRow = document.getElementById('newTagRow');
+    tagRow.innerHTML = '';
+
+    // Selected tag fallback if user deleted the one in use
+    if (!USER_TAGS.includes(newRecipeState.tag) && USER_TAGS.length) {
+      newRecipeState.tag = USER_TAGS[0];
+    }
+
+    // User's tags as selectable pills (already sorted A-Z)
+    USER_TAGS.forEach(tag => {
+      const pill = document.createElement('button');
+      pill.className = 'new-tag-pill' + (tag === newRecipeState.tag ? ' selected' : '');
+      pill.textContent = tag;
+      pill.addEventListener('click', () => {
+        newRecipeState.tag = tag;
+        tagRow.querySelectorAll('.new-tag-pill').forEach(p => p.classList.remove('selected'));
+        pill.classList.add('selected');
+        ensureFilterPill(tag);
+      });
+      tagRow.appendChild(pill);
+    });
+
+    // "＋ Add Category" button
+    const addBtn = document.createElement('button');
+    addBtn.className = 'new-tag-pill tag-add-btn';
+    addBtn.innerHTML = '＋ Add Category';
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showTagAdder(tagRow);
+    });
+    tagRow.appendChild(addBtn);
+  }
+
+  function showTagAdder(tagRow) {
+    // Remove existing adder if open
+    const existing = document.getElementById('tagAdderPanel');
+    if (existing) { existing.remove(); return; }
+
+    const panel = document.createElement('div');
+    panel.id = 'tagAdderPanel';
+    panel.style.cssText = 'width:100%;padding:12px 0 4px;display:flex;flex-direction:column;gap:10px;';
+
+    // Text input for custom category
+    const inputRow = document.createElement('div');
+    inputRow.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Custom category…';
+    input.className = 'new-field-input';
+    input.style.cssText = 'flex:1;font-size:14px;padding:10px 12px;';
+    input.setAttribute('enterkeyhint', 'done');
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Add';
+    saveBtn.className = 'new-sheet-save-btn';
+    saveBtn.style.cssText = 'width:auto;padding:10px 18px;font-size:14px;border-radius:10px;box-shadow:none;';
+    const doAdd = () => {
+      const val = input.value.trim();
+      if (!val) return;
+      if (addUserTag(val)) {
+        if (!newRecipeState.tag) newRecipeState.tag = val;
+        ensureFilterPill(val);
+        panel.remove();
+        renderTagPills();
+        // Auto-select newly added tag
+        tagRow.querySelectorAll('.new-tag-pill').forEach(p => {
+          if (p.textContent === val) p.click();
+        });
+      }
+      input.value = '';
+    };
+    saveBtn.addEventListener('click', doAdd);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doAdd(); });
+    inputRow.append(input, saveBtn);
+
+    // Suggested tags not already in user's list
+    const suggestions = SUGGESTED_TAGS.filter(t => !USER_TAGS.includes(t));
+    if (suggestions.length) {
+      const hintLabel = document.createElement('div');
+      hintLabel.style.cssText = 'font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);';
+      hintLabel.textContent = 'Suggestions';
+      const hintRow = document.createElement('div');
+      hintRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+      suggestions.forEach(tag => {
+        const hint = document.createElement('button');
+        hint.className = 'new-tag-pill';
+        hint.style.cssText = 'opacity:.55;';
+        hint.textContent = tag;
+        hint.addEventListener('click', () => {
+          addUserTag(tag);
+          if (!newRecipeState.tag) newRecipeState.tag = tag;
+          ensureFilterPill(tag);
+          panel.remove();
+          renderTagPills();
+          tagRow.querySelectorAll('.new-tag-pill').forEach(p => {
+            if (p.textContent === tag) p.click();
+          });
+        });
+        hintRow.appendChild(hint);
+      });
+      panel.append(hintLabel, hintRow);
+    }
+    panel.appendChild(inputRow);
+
+    // Insert panel right after the tag row
+    tagRow.parentNode.insertBefore(panel, tagRow.nextSibling);
+    input.focus();
+  }
 
   let newRecipeState = null;
   const recipeNewSheet = document.getElementById('recipeNewSheet');
@@ -2798,7 +2945,7 @@
   function initNewRecipeState() {
     newRecipeState = {
       name: '', time: '', serves: 2,
-      tag: 'Mains', color: CARD_COLORS[0],
+      tag: USER_TAGS[0] || '', color: CARD_COLORS[0],
       image: null,
       ingredients: [{ name: '', qty: '' }],
       directions: [''],
@@ -2921,22 +3068,8 @@
       swatchesEl.appendChild(sw);
     });
 
-    // Tag pills
-    const tagRow = document.getElementById('newTagRow');
-    tagRow.innerHTML = '';
-    RECIPE_TAGS.forEach(tag => {
-      const pill = document.createElement('button');
-      pill.className = 'new-tag-pill' + (tag === newRecipeState.tag ? ' selected' : '');
-      pill.textContent = tag;
-      pill.addEventListener('click', () => {
-        newRecipeState.tag = tag;
-        tagRow.querySelectorAll('.new-tag-pill').forEach(p => p.classList.remove('selected'));
-        pill.classList.add('selected');
-        // Add tag to filter bar if new
-        ensureFilterPill(tag);
-      });
-      tagRow.appendChild(pill);
-    });
+    // Tag pills — user's categories sorted A-Z
+    renderTagPills();
 
     // Ingredient / direction lists
     renderNewIngredients();
@@ -3294,18 +3427,16 @@
       activeRecipe.ingredients.forEach((ing, i) => {
         const row = document.createElement('div');
         row.className = 'edit-row';
+        row.dataset.dragIdx = i;
         row.innerHTML = `
+          <div class="edit-row-drag" title="Drag to reorder">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
           <div class="edit-row-content">
             <input class="edit-input edit-ing-name" value="${ing.name}" placeholder="Ingredient name" data-idx="${i}" />
             <input class="edit-input edit-input-qty edit-ing-qty" value="${ing.qty}" placeholder="Qty" data-idx="${i}" />
           </div>
           <div class="edit-row-actions">
-            <button class="edit-action-btn" data-dir="up" data-idx="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 8l4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <button class="edit-action-btn" data-dir="down" data-idx="${i}" ${i === activeRecipe.ingredients.length - 1 ? 'disabled' : ''} aria-label="Move down">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
             <button class="edit-action-btn del" data-del="ing" data-idx="${i}" aria-label="Remove">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
             </button>
@@ -3318,19 +3449,13 @@
       addRow.innerHTML = `<button class="edit-add-btn" id="addIngBtn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> Add Ingredient</button>`;
       ingEl.appendChild(addRow);
 
-      ingEl.querySelectorAll('.edit-action-btn[data-dir]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          syncEdits();
-          const i = parseInt(btn.dataset.idx);
-          const dir = btn.dataset.dir;
-          if (dir === 'up' && i > 0) {
-            [activeRecipe.ingredients[i-1], activeRecipe.ingredients[i]] = [activeRecipe.ingredients[i], activeRecipe.ingredients[i-1]];
-          } else if (dir === 'down' && i < activeRecipe.ingredients.length - 1) {
-            [activeRecipe.ingredients[i], activeRecipe.ingredients[i+1]] = [activeRecipe.ingredients[i+1], activeRecipe.ingredients[i]];
-          }
-          renderIngredients();
-        });
-      });
+      // Drag-and-drop reorder (same pattern as directions)
+      _initDirDrag(
+        ingEl,
+        () => activeRecipe.ingredients,
+        () => syncEdits(),
+        () => renderIngredients()
+      );
 
       ingEl.querySelectorAll('.edit-action-btn[data-del="ing"]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3669,140 +3794,17 @@
     reader.readAsDataURL(file);
   });
 
-  // ── RECIPE SHEET DRAG-TO-DISMISS ────────────────
-  // Only closes on a deliberate pull-down gesture released with enough
-  // distance (150px) or velocity (0.45 px/ms). Scrolling the recipe
-  // content never accidentally triggers close.
-  (function() {
-    const THRESHOLD = 150, VEL = 0.45;
-    let startY = 0, startTime = 0, dragging = false;
+  // Modals close via their down-chevron buttons only (no swipe-to-dismiss).
 
-    function contentScrollTop() {
-      return window.innerWidth <= 768
-        ? recipeSheet.scrollTop
-        : (document.getElementById('recipeBody')?.scrollTop || 0);
-    }
-    function baseTransform() {
-      return window.innerWidth <= 768 ? '' : 'translateX(-50%) ';
-    }
-    function clearDragStyle() {
-      recipeSheet.style.transition = '';
-      recipeSheet.style.transform  = '';
-    }
-
-    recipeSheet.addEventListener('touchstart', (e) => {
-      if (contentScrollTop() > 4) return;
-      startY    = e.touches[0].clientY;
-      startTime = Date.now();
-      dragging  = false;
-    }, { passive: true });
-
-    recipeSheet.addEventListener('touchmove', (e) => {
-      if (!recipeSheet.classList.contains('open')) return;
-      if (contentScrollTop() > 4) { dragging = false; return; }
-      const dy = e.touches[0].clientY - startY;
-      if (dy <= 0) return;
-      dragging = true;
-      recipeSheet.style.transition = 'none';
-      recipeSheet.style.transform  = `${baseTransform()}translateY(${dy}px)`;
-    }, { passive: true });
-
-    recipeSheet.addEventListener('touchend', (e) => {
-      if (!dragging) return;
-      dragging = false;
-      const dy  = e.changedTouches[0].clientY - startY;
-      const vel = dy / Math.max(1, Date.now() - startTime);
-
-      if (dy >= THRESHOLD || vel >= VEL) {
-        // dismiss — slide off screen then clean up
-        recipeSheet.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
-        recipeSheet.style.transform  = `${baseTransform()}translateY(110%)`;
-        recipeSheet.addEventListener('transitionend', () => {
-          clearDragStyle();
-          closeRecipe();
-        }, { once: true });
-      } else {
-        // snap back with spring
-        recipeSheet.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        recipeSheet.style.transform  = `${baseTransform()}translateY(0)`;
-        recipeSheet.addEventListener('transitionend', clearDragStyle, { once: true });
-      }
-    }, { passive: true });
-  })();
-
-  // ── DOCK DRAG-TO-DISMISS ─────────────────────────
-  // Pull the shopping list dock down to close it.
-  (function() {
-    const THRESHOLD = 120, VEL = 0.4;
-    let startY = 0, startTime = 0, dragging = false;
-    const dockExpanded = document.querySelector('.dock-expanded');
-
-    function clearDragStyle() {
-      dock.style.transition = '';
-      dock.style.transform  = '';
-    }
-
-    dock.addEventListener('touchstart', (e) => {
-      if (!dock.classList.contains('open')) return;
-      if ((dockExpanded?.scrollTop || 0) > 4) return;
-      startY    = e.touches[0].clientY;
-      startTime = Date.now();
-      dragging  = false;
-    }, { passive: true });
-
-    dock.addEventListener('touchmove', (e) => {
-      if (!dock.classList.contains('open')) return;
-      if ((dockExpanded?.scrollTop || 0) > 4) { dragging = false; return; }
-      const dy = e.touches[0].clientY - startY;
-      if (dy <= 0) return;
-      dragging = true;
-      dock.style.transition = 'none';
-      dock.style.transform  = `translateY(${dy}px)`;
-    }, { passive: true });
-
-    dock.addEventListener('touchend', (e) => {
-      if (!dragging) return;
-      dragging = false;
-      const dy  = e.changedTouches[0].clientY - startY;
-      const vel = dy / Math.max(1, Date.now() - startTime);
-
-      if (dy >= THRESHOLD || vel >= VEL) {
-        dock.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
-        dock.style.transform  = 'translateY(110%)';
-        dock.addEventListener('transitionend', () => {
-          clearDragStyle();
-          closeDock();
-        }, { once: true });
-      } else {
-        dock.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        dock.style.transform  = 'translateY(0)';
-        dock.addEventListener('transitionend', clearDragStyle, { once: true });
-      }
-    }, { passive: true });
-  })();
-
-  // ── GLOBAL POP FEEDBACK ──────────────────────────
-  // Applies bounce animation to any interactive element on click/tap.
+  // ── GLOBAL POP FEEDBACK (icons only) ────────────
+  // Only small icon-sized buttons get the bounce — not cards, pills, or large buttons.
   document.addEventListener('click', (e) => {
-    const el = e.target.closest(
-      'button, .view-btn, .mult-btn, .add-all-btn, .card, .disc-card, ' +
-      '.new-tag-pill, .dock-handle, .recipe-add-footer-btn, .new-sheet-save-btn, ' +
-      '.header-add-btn, .mc-btn, .dock-close'
-    );
+    const el = e.target.closest('.view-btn, .mc-btn, .dock-close, .header-add-btn');
     if (!el) return;
-
-    // Ingredient add already has its own pop via addIngredient()
-    if (el.classList.contains('ingredient-add')) return;
-
-    const isIcon  = el.classList.contains('view-btn') || el.classList.contains('mc-btn') ||
-                    el.classList.contains('dock-close') || el.classList.contains('header-add-btn');
-    const isCard  = el.classList.contains('card') || el.classList.contains('disc-card');
-    const cls     = isIcon ? 'pop' : isCard ? 'pop-card' : 'pop-sm';
-
-    el.classList.remove('pop', 'pop-sm', 'pop-card');
-    void el.offsetWidth; // force reflow to restart animation
-    el.classList.add(cls);
-    el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
+    el.addEventListener('animationend', () => el.classList.remove('pop'), { once: true });
   });
 </script>
 
